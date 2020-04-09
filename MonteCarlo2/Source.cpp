@@ -20,29 +20,27 @@ void f(size_t N, double& result) {
 		}
 	}
 	result /= N;
+	
 }
 void consistently(size_t N) {
 	double result;
 	f(N, result);
-	std::cout << 4 * result / N << std::endl;
+	std::cout << 4 * result << std::endl;
 }
 void parallel(size_t N) {
 	const std::size_t length = N;
-	const std::size_t min_per_thread = length / 4;
-	const std::size_t max_threads = (length + min_per_thread - 1) / min_per_thread;
 	const std::size_t hardware_threads = std::thread::hardware_concurrency();
-	const std::size_t num_threads = std::min(hardware_threads != 0 ? hardware_threads : 2, max_threads);
+	const std::size_t num_threads = hardware_threads != 0 ? hardware_threads : 2;
 	std::size_t block_size = length / num_threads;
 	std::vector < double > results(num_threads);
 	std::vector < std::thread > threads;
 	for (std::size_t i = 0; i < num_threads - 1; ++i) {
 		threads.push_back(std::thread(f, block_size, std::ref(results[i])));
-		block_size += block_size;
 	}
 	double result;
 	f(N, std::ref(result));
 	std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
-	std::cout << 4 * std::accumulate(results.begin(), results.end(), result) / num_threads << std::endl;
+	std::cout << 4 * std::accumulate(results.begin(), results.end(), result ) / num_threads << std::endl;
 }
 int main() {
 	//std::thread thread(consistently,100);
